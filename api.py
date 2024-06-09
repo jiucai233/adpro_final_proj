@@ -30,7 +30,7 @@ def authenticate():
                 token.write(creds.to_json())
     return creds
 
-def append_to_sheet(spreadsheet_id, range_name, values):
+def append_to_sheet(spreadsheet_id='1vM2UylvCuIcBQrWf8p_xiGE0sNdpg1_XgwT2VOjrQIg', range_name='A:C', values=[]):
     creds = authenticate()
     service = googleapiclient.discovery.build('sheets', 'v4', credentials=creds)
     body = {
@@ -44,7 +44,7 @@ def append_to_sheet(spreadsheet_id, range_name, values):
     ).execute()
     return result
 
-def get_data_from_sheet(spreadsheet_id, range_name):
+def get_data_from_sheet(spreadsheet_id='1vM2UylvCuIcBQrWf8p_xiGE0sNdpg1_XgwT2VOjrQIg', range_name='A:C'):
     creds = authenticate()
     service = googleapiclient.discovery.build('sheets', 'v4', credentials=creds)
     result = service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=range_name).execute()
@@ -53,5 +53,6 @@ def get_data_from_sheet(spreadsheet_id, range_name):
 
 if __name__ == '__main__':
     append_to_sheet('1vM2UylvCuIcBQrWf8p_xiGE0sNdpg1_XgwT2VOjrQIg', 'A2:C2', ['2023-06-04', '식비', '10000'])
-    data = get_data_from_sheet('1vM2UylvCuIcBQrWf8p_xiGE0sNdpg1_XgwT2VOjrQIg', 'A2:C2')
+    append_to_sheet('1vM2UylvCuIcBQrWf8p_xiGE0sNdpg1_XgwT2VOjrQIg', 'A2:C2', ['2023-07-04', '교통비', '110000'])
+    data = get_data_from_sheet('1vM2UylvCuIcBQrWf8p_xiGE0sNdpg1_XgwT2VOjrQIg', 'A:C')
     print(data)
