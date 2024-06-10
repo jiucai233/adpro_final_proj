@@ -37,6 +37,7 @@ import altair as alt
 # 定义一个自定义异常类
 
 #this is the division of getting variables from users
+st.header('nigger executer')
 money = st.text_input(label="금액이 입력하세요")
 type = st.selectbox(label="종류를 선택하세요",
                       options=('교통','식비','기타'),
@@ -89,13 +90,14 @@ if recent_data.empty:
 else:
     # 按每周进行重新采样并求和
     weekly_data = recent_data.groupby([pd.Grouper(key='date', freq='W'), 'type']).sum().reset_index()#在这里把所有的数据（recent data）合到了一块（weekly data），那个type（식비교통）发生也是因为这里面做了str的加法
-    weekly_data.index = weekly_data.index.astype(str)
     weekly_data['date'] = weekly_data['date'].astype(str)
-
-    # 显示重新采样后的数据
-    st.write("the data recent 4 weeks：(weekly_data)")
-    st.write(weekly_data)
-    pivot_data = weekly_data.reset_index().pivot_table(index='date', columns='type', values='money', aggfunc='sum').fillna(0)
+    all_dates = pd.date_range(start=four_weeks_ago + timedelta(weeks=1) , end=last_date + timedelta(weeks=1) , freq='W')
+    all_dates_str = all_dates.astype(str)
+    multi_index = pd.MultiIndex.from_product([all_dates, df['type'].unique()], names=['date', 'type'])
+    st.title("the data recent 4 weeks")
+    
+    pivot_data = weekly_data.reset_index().pivot_table(index='date', columns='type', values='money', aggfunc='sum').reindex(all_dates_str, fill_value=0).fillna(0)
+    st.write(pivot_data)
     st.line_chart(pivot_data)
 
 # 按照类型和日期整合数据到新的 DataFrame 中
