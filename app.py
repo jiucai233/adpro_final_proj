@@ -37,8 +37,7 @@ import altair as alt
 # 定义一个自定义异常类
 
 #this is the division of getting variables from users
-money = st.number_input(label="금액이 입력하세요",
-                        step=1)
+money = st.text_input(label="금액이 입력하세요")
 type = st.selectbox(label="종류를 선택하세요",
                       options=('교통','식비','기타'),
                       format_func=str)
@@ -48,7 +47,7 @@ min_date = date - timedelta(weeks=4)
 if st.button('입력'):
     try:
         money = float(money)
-        append_to_sheet(range_name='A:C', values=[str(date), type, int(money)])
+        append_to_sheet(range_name='A:C', values=[str(date), type, int(money)]) #why put the date in the str is because date object is not json iterable
         st.success("정상적으로 처리됨！")
     except ValueError:
         st.error("Warning:금액은 반드시 숫자다!")
@@ -90,24 +89,16 @@ if recent_data.empty:
 else:
     # 按每周进行重新采样并求和
     weekly_data = recent_data.resample('W', on='date').sum()
+    weekly_data['date'] = pd.to_datetime(weekly_data['date'])
+    weekly_data.set_index('date', inplace=True)
+    # stringified_weekly_data = weekly_data[].astype(str)
 
     # 显示重新采样后的数据
     st.write("the data recent 4 weeks：(weekly_data)")
     st.write(weekly_data)
+    st.line_chart(data=weekly_data,x='date',y='money')
 
 # 按照类型和日期整合数据到新的 DataFrame 中
 typedata = df.groupby(['type', pd.Grouper(key='date', freq='W-Sun')]).sum().reset_index()
 st.header('typedata')
 st.write(typedata)
-
-st.subheader('histogram of the consumption in last 4 weeks')
-chart = alt.Chart(weekly_data).mark_line().encode(
-    x='date:T',
-    y='money:Q'
-).properties(
-    width='container',  # 宽度自适应
-    height=400          # 高度可以根据需要设置
-).interactive()
-
-# 在 Streamlit 中展示图表
-st.altair_chart(chart, use_container_width=True)
