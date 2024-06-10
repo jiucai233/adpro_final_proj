@@ -48,41 +48,26 @@ min_date = date - timedelta(weeks=4)
 if st.button('입력'):
     try:
         money = float(money)
-        append_to_sheet(range_name='A:C', values=[str(date), type, money])
+        append_to_sheet(range_name='A:C', values=[str(date), type, int(money)])
         st.success("정상적으로 처리됨！")
     except ValueError:
         st.error("Warning:금액은 반드시 숫자다!")
 
-st.subheader('histogram of the consumption in last 4 weeks')
 data = get_data_from_sheet('1vM2UylvCuIcBQrWf8p_xiGE0sNdpg1_XgwT2VOjrQIg', 'A:C')
 df = pd.DataFrame(data)
 df.columns = ['date', 'type', 'money']
 df['date'] = pd.to_datetime(df['date'], errors='coerce')
 
-# datedf = pd.to_datetime(df['date'][1:]) 
-# moneydf = df['money'][1:].astype(int) 
-# typedf = df['type'][1:]
+df = df.iloc[1:, :]  # read from second row
 
-
-
-
-# st.line_chart(data=df,x=date,y=money)
-
-plot_df = df.iloc[1:, :]  # 从第二行开始读取所有列
-
-# 绘制图表
-chart = alt.Chart(plot_df).mark_line().encode(
-    x='date:T',
-    y='money:Q'
-).properties(
-    width='container',  # 宽度自适应
-    height=400          # 高度可以根据需要设置
-).interactive()
-
-# 在 Streamlit 中展示图表
-st.altair_chart(chart, use_container_width=True)
-
+st.header('df')
 st.dataframe(df)
+
+# 将 money 列转换为整数类型
+df['money'] = df['money'].astype(int)
+
+# 将日期列转换为日期时间类型
+df['date'] = pd.to_datetime(df['date'])
 
 #connect df to the session
 if 'data' not in st.session_state:
@@ -101,11 +86,28 @@ recent_data = st.session_state.data.loc[st.session_state.data['date'].between(fo
 
 # 如果 recent_data 为空，返回空的DataFrame
 if recent_data.empty:
-    st.write("最近四周的数据为空。")
+    st.write("not input yet")
 else:
     # 按每周进行重新采样并求和
     weekly_data = recent_data.resample('W', on='date').sum()
 
     # 显示重新采样后的数据
-    st.write("最近四周的数据：")
+    st.write("the data recent 4 weeks：(weekly_data)")
     st.write(weekly_data)
+
+# 按照类型和日期整合数据到新的 DataFrame 中
+typedata = df.groupby(['type', pd.Grouper(key='date', freq='W-Sun')]).sum().reset_index()
+st.header('typedata')
+st.write(typedata)
+
+st.subheader('histogram of the consumption in last 4 weeks')
+chart = alt.Chart(weekly_data).mark_line().encode(
+    x='date:T',
+    y='money:Q'
+).properties(
+    width='container',  # 宽度自适应
+    height=400          # 高度可以根据需要设置
+).interactive()
+
+# 在 Streamlit 中展示图表
+st.altair_chart(chart, use_container_width=True)
