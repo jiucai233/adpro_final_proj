@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 import altair as alt
+from streamlit_apexjs import st_apexcharts   #pip install streamlit_apexjs
 
 
 # streamlit으로입력
@@ -97,7 +98,36 @@ else:
     st.title("the data recent 4 weeks")
     
     pivot_data = weekly_data.reset_index().pivot_table(index='date', columns='type', values='money', aggfunc='sum').reindex(all_dates_str, fill_value=0).fillna(0)
-    st.write(pivot_data)
     st.line_chart(pivot_data)
 
-# 按照类型和日期整合数据到新的 DataFrame 中
+    type_totals = pivot_data.sum()
+    options = {
+        "chart": {
+            "toolbar": {
+                "show": False
+            }
+        },
+
+        "labels": ['교통','기타','식비']
+        ,
+        "legend": {
+            "show": True,
+            "position": "bottom",
+        }
+    }
+
+    series = pivot_data.sum().tolist()
+
+    st_apexcharts(options, series, 'donut', '600', 'title')
+
+
+
+    pivot_data['합계(행)'] = pivot_data.sum(axis=1)
+    pivot_data.loc['합계(열)'] = pivot_data.sum()
+    # 显示重新采样后的数据
+    st.write("The data for the recent 4 weeks:")
+    st.write(pivot_data)
+    pivot_data = pivot_data.drop(index='합계(열)', errors='ignore')
+    # 使用 Streamlit 绘制折线图
+    
+    
