@@ -59,7 +59,7 @@ df['date'] = pd.to_datetime(df['date'], errors='coerce')
 
 df = df.iloc[1:, :]  # read from second row
 
-st.header('df')
+st.header('Type data')
 st.dataframe(df)
 
 # 将 money 列转换为整数类型
@@ -88,16 +88,14 @@ if recent_data.empty:
     st.write("not input yet")
 else:
     # 按每周进行重新采样并求和
-    weekly_data = recent_data.resample('W', on='date').sum()#在这里把所有的数据（recent data）合到了一块（weekly data），那个type（식비교통）发生也是因为这里面做了str的加法
+    weekly_data = recent_data.groupby([pd.Grouper(key='date', freq='W'), 'type']).sum().reset_index()#在这里把所有的数据（recent data）合到了一块（weekly data），那个type（식비교통）发生也是因为这里面做了str的加法
     weekly_data.index = weekly_data.index.astype(str)
-
+    weekly_data['date'] = weekly_data['date'].astype(str)
 
     # 显示重新采样后的数据
     st.write("the data recent 4 weeks：(weekly_data)")
     st.write(weekly_data)
-    st.line_chart(data=weekly_data, y='money')
+    pivot_data = weekly_data.reset_index().pivot_table(index='date', columns='type', values='money', aggfunc='sum').fillna(0)
+    st.line_chart(pivot_data)
 
 # 按照类型和日期整合数据到新的 DataFrame 中
-typedata = df.groupby(['type', pd.Grouper(key='date', freq='W-Sun')]).sum().reset_index()
-st.header('typedata')
-st.write(typedata)
