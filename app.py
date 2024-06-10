@@ -4,6 +4,8 @@ from api import get_data_from_sheet,append_to_sheet
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+import altair as alt
+
 
 # streamlit으로입력
 # ● date
@@ -23,7 +25,7 @@ from matplotlib import pyplot as plt
 # 금액에숫자가아닌값이들어있는채로[입력]버튼을누르면warning을띄우고 구글시트에입력하지않고가만히있는다.5점
 # 위문제를Exception을사용해서해결한다.5점
 # 구글시트에서날짜,type,금액을읽어온다.15점============================================================
-# 마지막입력의날짜로부터과거4주만읽어온다10점x
+# 마지막입력의날짜로부터과거4주만읽어온다10점
 # 읽어온값을streamlit에어떤형태로든보여준다.10점
 # 읽어온값을오른쪽형태로보여준다.15점
 # 소비가없는주,종류는0원으로처리한다.20점
@@ -37,7 +39,7 @@ from matplotlib import pyplot as plt
 #this is the division of getting variables from users
 money = st.number_input(label="금액이 입력하세요",
                         step=1)
-gengre = st.selectbox(label="종류를 선택하세요",
+type = st.selectbox(label="종류를 선택하세요",
                       options=('교통','식비','기타'),
                       format_func=str)
 date = st.date_input(label='날짜를 선택하세요')
@@ -46,7 +48,7 @@ min_date = date - timedelta(weeks=4)
 if st.button('입력'):
     try:
         money = float(money)
-        append_to_sheet(range_name='A:C', values=[str(date), gengre, money])
+        append_to_sheet(range_name='A:C', values=[str(date), type, money])
         st.success("정상적으로 처리됨！")
     except ValueError:
         st.error("Warning:금액은 반드시 숫자다!")
@@ -56,13 +58,35 @@ data = get_data_from_sheet('1vM2UylvCuIcBQrWf8p_xiGE0sNdpg1_XgwT2VOjrQIg', 'A:C'
 df = pd.DataFrame(data)
 df.columns = ['date', 'type', 'money']
 df['date'] = pd.to_datetime(df['date'], errors='coerce')
-st.line_chart(data=df,x='date',y='money')
+
+# datedf = pd.to_datetime(df['date'][1:]) 
+# moneydf = df['money'][1:].astype(int) 
+# typedf = df['type'][1:]
+
+
+
+
+# st.line_chart(data=df,x=date,y=money)
+
+plot_df = df.iloc[1:, :]  # 从第二行开始读取所有列
+
+# 绘制图表
+chart = alt.Chart(plot_df).mark_line().encode(
+    x='date:T',
+    y='money:Q'
+).properties(
+    width='container',  # 宽度自适应
+    height=400          # 高度可以根据需要设置
+).interactive()
+
+# 在 Streamlit 中展示图表
+st.altair_chart(chart, use_container_width=True)
+
 st.dataframe(df)
 
+#connect df to the session
 if 'data' not in st.session_state:
-    st.session_state.data = pd.DataFrame()
     st.session_state.data = df
-
 
 # 如果 DataFrame 为空，添加一个名为 'date' 的列
 if st.session_state.data.empty:
