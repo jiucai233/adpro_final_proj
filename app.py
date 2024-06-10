@@ -38,7 +38,7 @@ from streamlit_apexjs import st_apexcharts   #pip install streamlit_apexjs
 # 定义一个自定义异常类
 
 #this is the division of getting variables from users
-st.header('nigger executer')
+st.header('가계부')
 money = st.text_input(label="금액이 입력하세요")
 type = st.selectbox(label="종류를 선택하세요",
                       options=('교통','식비','기타'),
@@ -118,16 +118,12 @@ else:
 
     series = pivot_data.sum().tolist()
 
-    st_apexcharts(options, series, 'donut', '600', 'title')
+    st_apexcharts(options, series, 'donut', '600', 'Pie chart')
 
 
 
     pivot_data['합계(행)'] = pivot_data.sum(axis=1)
     pivot_data.loc['합계(열)'] = pivot_data.sum()
-    # 显示重新采样后的数据
     st.write("The data for the recent 4 weeks:")
     st.write(pivot_data)
     pivot_data = pivot_data.drop(index='합계(열)', errors='ignore')
-    # 使用 Streamlit 绘制折线图
-    
-    
